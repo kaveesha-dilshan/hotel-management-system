@@ -1,6 +1,7 @@
 import express from "express";
 import "dotenv/config.js";
 import connectDB from "./config/db.js";
+import authRoutes from "./routes/authRoutes.js"
 
 const app = express();
 
@@ -13,6 +14,8 @@ app.get("/", (req, res) => {
         message: "HOTEL MANAGMNENT SYSTEM API RUNNING"
     })
 })
+
+app.use("/api/auth", authRoutes);
 
 connectDB();
 
