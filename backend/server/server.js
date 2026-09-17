@@ -2,6 +2,7 @@ import express from "express";
 import "dotenv/config.js";
 import connectDB from "./config/db.js";
 import authRoutes from "./routes/authRoutes.js"
+import { protect, authorize } from "./middleware/authMiddleware.js";
 
 const app = express();
 
@@ -14,6 +15,24 @@ app.get("/", (req, res) => {
         message: "HOTEL MANAGMNENT SYSTEM API RUNNING"
     })
 })
+
+app.get("/api/test/protected", protect, (req, res) => {
+    res.json({
+        message: "Protected route working",
+        user: req.user
+    })
+})
+
+app.get(
+    "/api/test/owner",
+    protect,
+    authorize("owner"),
+    (req, res) => {
+        res.json({
+            message: "Owner route working"
+        });
+    }
+);
 
 app.use("/api/auth", authRoutes);
 
