@@ -16,23 +16,23 @@ app.get("/", (req, res) => {
     })
 })
 
-app.get("/api/test/protected", protect, (req, res) => {
-    res.json({
-        message: "Protected route working",
-        user: req.user
-    })
-})
+// app.get("/api/test/protected", protect, (req, res) => {
+//     res.json({
+//         message: "Protected route working",
+//         user: req.user
+//     })
+// })
 
-app.get(
-    "/api/test/owner",
-    protect,
-    authorize("owner"),
-    (req, res) => {
-        res.json({
-            message: "Owner route working"
-        });
-    }
-);
+// app.get(
+//     "/api/test/owner",
+//     protect,
+//     authorize("owner"),
+//     (req, res) => {
+//         res.json({
+//             message: "Owner route working"
+//         });
+//     }
+// );
 
 app.use("/api/auth", authRoutes);
 

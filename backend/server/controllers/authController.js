@@ -102,3 +102,63 @@ export const loginUser = async (req, res) => {
         })
     }
 }
+
+export const createOwner = async (req, res) => {
+    try {
+        const { name, email, password, setupKey } = req.body;
+
+        if (!name || !email || !password || !setupKey){
+            return res.status(400).json({
+                message: "All fields are required"
+            })
+        }
+
+        if (setupKey !== process.env.OWNER_SETUP_KEY) {
+            return res.status(403).json({
+                message: "Invalid owner setup key"
+            })
+        }
+
+        const existingOwner = await User.findOne({
+            role: "owner"
+        })
+
+        if (existingOwner) {
+            return res.status(400).json({
+                message: "Owner already exists"
+            })
+        }
+
+        // check if email is already used
+        const existingUser = await User.findOne({ email });
+
+        if (existingUser) {
+            return res.status(400).json({
+                message: "Email already exists"
+            })
+        }
+
+        const hashedPassword = await bcrypt.hash(password, 10);
+
+        const owner = await User.create({
+            name,
+            email,
+            password: hashedPassword,
+            role: "owner"
+        })
+
+        res.status(201).json({
+            message: "Owner created successfully",
+            user: {
+                id: owner._id,
+                name: owner.name,
+                email: owner.email,
+                role: owner.role
+            }
+        })
+    } catch (error) {
+        res.status(500).json({
+            message: error.message
+        })
+    }
+}
