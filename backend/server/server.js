@@ -3,6 +3,7 @@ import "dotenv/config.js";
 import connectDB from "./config/db.js";
 import authRoutes from "./routes/authRoutes.js"
 import { protect, authorize } from "./middleware/authMiddleware.js";
+import roomRoutes from "../server/routes/roomRoutes.js";
 
 const app = express();
 
@@ -35,6 +36,7 @@ app.get("/", (req, res) => {
 // );
 
 app.use("/api/auth", authRoutes);
+app.use("/api/rooms", roomRoutes);
 
 connectDB();
 
