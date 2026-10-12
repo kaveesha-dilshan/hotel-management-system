@@ -20,7 +20,7 @@ const guestSchema = new mongoose.Schema(
             trim: true
         },
 
-        adresss: {
+        address: {
             type: String,
             trim: true,
             default: ""

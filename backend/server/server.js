@@ -4,6 +4,7 @@ import connectDB from "./config/db.js";
 import authRoutes from "./routes/authRoutes.js"
 import { protect, authorize } from "./middleware/authMiddleware.js";
 import roomRoutes from "../server/routes/roomRoutes.js";
+import guestRoutes from "../server/routes/guestRoutes.js";
 
 const app = express();
 
@@ -37,6 +38,7 @@ app.get("/", (req, res) => {
 
 app.use("/api/auth", authRoutes);
 app.use("/api/rooms", roomRoutes);
+app.use("/api/guests", guestRoutes);
 
 connectDB();
 
