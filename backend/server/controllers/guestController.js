@@ -76,7 +76,7 @@ export const getGuestById = async (req, res) => {
             guest
         })
     } catch (error) {
-        res.status(500)({
+        res.status(500).json({
             message: error.message
         })
     }
@@ -91,6 +91,13 @@ export const updateGuests = async (req, res) => {
         if(!mongoose.isValidObjectId(id)){
             return res.status(400).json({
                 message: "Invalid Guest Id"
+            })
+        }
+
+        // to igno the empty attemps
+        if(Object.keys(req.body).length ===0 ){
+            return res.status(400).json({
+                message: "Request body is empty"
             })
         }
 
@@ -122,7 +129,16 @@ export const updateGuests = async (req, res) => {
         }
 
         if(idNumber !== undefined) {
-            guest.idNumber = idNumber
+            const existingGuest = await Guest.findOne({
+                idNumber,
+                _id: { $ne: guest._id }
+            });
+
+            if(existingGuest) {
+                return res.status(409).json({
+                    message: "Another guest already uses this ID number"
+                })
+            }
         }
 
         await guest.save();
