@@ -153,3 +153,33 @@ export const updateGuests = async (req, res) => {
         })
     }
 }
+
+export const deleteGuest = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        if(!mongoose.isValidObjectId(id)){
+            return res.status(400).json({
+                message: "Invalid Guest ID"
+            })
+        }
+        const guest = await Guest.findById(id);
+
+        if(!guest){
+            return res.status(404).json({
+                message: "Guest not found"
+            })
+        }
+        
+        await guest.deleteOne();
+        
+        res.status(200).json({
+            message: "Guest deleted"
+        })
+        
+    } catch (error) {
+        res.status(500).json({
+            message: error.message
+        })
+    }
+}
