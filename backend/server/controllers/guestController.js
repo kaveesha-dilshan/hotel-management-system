@@ -176,7 +176,7 @@ export const deleteGuest = async (req, res) => {
         res.status(200).json({
             message: "Guest deleted"
         })
-        
+
     } catch (error) {
         res.status(500).json({
             message: error.message
