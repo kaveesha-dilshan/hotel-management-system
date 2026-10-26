@@ -54,6 +54,16 @@ export const createBooking = async (req, res) => {
             })
         }
 
+        const roomUnderMaintenance = existingRooms.some(
+            room => room.status === "Maintenance"
+        );
+
+        if(roomUnderMaintenance) {
+            return res.status(400).json({
+                message: "Cannot book a room that is under maintenance"
+            })
+        }
+
         const checkIn = new Date(checkInDate);
         const checkOut = new Date(checkOutDate);
 
@@ -111,8 +121,12 @@ export const createBooking = async (req, res) => {
             rooms: { $in: rooms },
             status: { $in: ["Pending", "Confirmed", "CheckedIn"] },
             checkInDate: { $lt: checkOut},
-            checkOutDate: {$gt: checkIn }
+            checkOutDate: { $gt: checkIn }
         });
+
+        // console.log("New check-in:", checkIn);
+        // console.log("New check-out:", checkOut);
+        // console.log("Conflicting booking:", conflictingBooking);
 
         if (conflictingBooking) {
             return res.status(409).json({
