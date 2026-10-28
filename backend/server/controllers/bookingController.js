@@ -5,7 +5,7 @@ import Room from "../models/roomModel.js";
 
 export const createBooking = async (req, res) => {
     try {
-        const { guest, rooms, checkInDate, checkOutDate, numberOfGuests, status } = req.body;
+        const { guest, rooms, checkInDate, checkOutDate, numberOfGuests } = req.body;
         
         if(!guest || !rooms || !checkInDate || !checkOutDate || !numberOfGuests){
             return res.status(400).json({
@@ -66,6 +66,16 @@ export const createBooking = async (req, res) => {
 
         const checkIn = new Date(checkInDate);
         const checkOut = new Date(checkOutDate);
+
+        // check date is not past day (user entered day sholud be today or future)
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        if (checkIn < today){
+            return res.status(400).json({
+                message: "Check-in date cannot be in the past"
+            })
+        }
 
 
         const millisecondsPerDay = 1000 * 60 * 60 * 24;
@@ -138,8 +148,7 @@ export const createBooking = async (req, res) => {
             rooms, 
             checkInDate, 
             checkOutDate, 
-            numberOfGuests, 
-            status, 
+            numberOfGuests,  
             totalAmount
         })
 
