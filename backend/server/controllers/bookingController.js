@@ -176,3 +176,20 @@ export const createBooking = async (req, res) => {
         })
     }
 }
+
+
+export const getAllBookings = async (req, res) => {
+    try {
+        const bookings = await Booking.find()
+            .populate("guest")
+            .populate("rooms");
+
+        res.status(200).json({
+            bookings
+        })
+    } catch (error) {
+        res.status(500).json({
+            message: error.message
+        })
+    }
+}
