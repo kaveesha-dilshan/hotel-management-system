@@ -467,3 +467,42 @@ export const updateBooking = async (req, res) => {
         })
     }
 }
+
+export const cancelBooking = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        if(!mongoose.isValidObjectId(id)){
+            return res.status(400).json({
+                message: "Invalid booking ID"
+            })
+        }
+
+        const booking = await Booking.findById(id);
+
+        if(!booking){
+            return res.status(404).json({
+                message: "Booking not found"
+            })
+        }
+
+        if(["CheckedIn", "CheckedOut", "Cancelled"].includes(booking.status)){
+            return res.status(400).json({
+                message: `Cannot cancel the bookings on ${booking.status}`
+            })
+        }
+
+        booking.status = "Cancelled";
+
+        await booking.save();
+
+        return res.status(200).json({
+            message: "Booking cancelled successfully",
+            booking
+        })
+    } catch (error) {
+        res.status(500).json({
+            message: error.message
+        })
+    }
+}
