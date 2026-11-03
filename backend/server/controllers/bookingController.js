@@ -500,7 +500,87 @@ export const cancelBooking = async (req, res) => {
             message: "Booking cancelled successfully",
             booking
         })
-        
+
+    } catch (error) {
+        res.status(500).json({
+            message: error.message
+        })
+    }
+}
+
+
+export const checkInBooking = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        if (!mongoose.isValidObjectId(id)){
+            return res.status(400).json({
+                message: "Invalid booking ID"
+            })
+        }
+
+        const booking = await Booking.findById(id);
+
+        if(!booking){
+            return res.status(404).json({
+                message: "Booking not found"
+            })
+        }
+
+        if(booking.status !== "Confirmed"){
+            return res.status(409).json({
+                message: `Cannot check in a booking with status: ${booking.status}`
+            })
+        }
+
+        const today = new Date();
+        const checkInDate = new Date(booking.checkInDate);
+
+        today.setUTCHours(0, 0, 0, 0);
+        checkInDate.setUTCHours(0, 0, 0, 0);
+
+        if(today < checkInDate){
+            return res.status(400).json({
+                message: "Check-in date has not arrived yet"
+            })
+        }
+
+        const rooms = await Room.find({
+            _id: { $in: booking.rooms }
+        })
+
+        if(rooms.length !== booking.rooms.length){
+            return res.status(409).json({
+                message: "one or more booked rooms could not find"
+            })
+        }
+
+        const unavailableRoom = rooms.some(
+            room => room.status !== "Available"
+        )
+
+        if(unavailableRoom){
+            return res.status(409).json({
+                message: "One or more rooms are not available for check-in"
+            })
+        }
+
+        booking.status = "CheckedIn";
+
+        await Room.updateMany(
+            {_id: { $in: booking.rooms}},
+            {$set: { status: "Occupied"}}
+        )
+
+        await booking.save();
+
+        await booking.populate(["guest", "rooms"])
+
+        res.status(200).json({
+            message: "Guest checked in successfully",
+            booking
+        })
+
     } catch (error) {
         res.status(500).json({
             message: error.message
