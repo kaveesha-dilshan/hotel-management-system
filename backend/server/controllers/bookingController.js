@@ -405,7 +405,7 @@ export const updateBooking = async (req, res) => {
         })
 
         if (conflictingBooking){
-            return res.status(400).json({
+            return res.status(409).json({
                 message: "One or more rooms are already book for these dates"
             })
         }
@@ -433,7 +433,7 @@ export const updateBooking = async (req, res) => {
 
         await booking.populate(["guest", "rooms"]);
 
-        res.status(200).json({
+        return res.status(200).json({
             message: "Booking updated successfully",
             booking
         })
@@ -442,13 +442,13 @@ export const updateBooking = async (req, res) => {
         //     booking.rooms = rooms;
         // }
 
-        if(checkInDate !== undefined){
-            booking.checkInDate = parsedCheckIn;
-        }
+        // if(checkInDate !== undefined){
+        //     booking.checkInDate = parsedCheckIn;
+        // }
 
-        if(checkOutDate !== undefined){
-            booking.checkOutDate = parsedCheckOut;
-        } 
+        // if(checkOutDate !== undefined){
+        //     booking.checkOutDate = parsedCheckOut;
+        // } 
 
         // if(numberOfGuests !== undefined){
         //     booking.numberOfGuests = numberOfGuests;
@@ -487,7 +487,7 @@ export const cancelBooking = async (req, res) => {
         }
 
         if(["CheckedIn", "CheckedOut", "Cancelled"].includes(booking.status)){
-            return res.status(400).json({
+            return res.status(409).json({
                 message: `Cannot cancel the bookings on ${booking.status}`
             })
         }
@@ -500,6 +500,7 @@ export const cancelBooking = async (req, res) => {
             message: "Booking cancelled successfully",
             booking
         })
+        
     } catch (error) {
         res.status(500).json({
             message: error.message
