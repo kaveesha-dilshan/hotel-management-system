@@ -509,6 +509,82 @@ export const cancelBooking = async (req, res) => {
 }
 
 
+export const confirmBooking = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        if(!mongoose.isValidObjectId(id)){
+            return res.status(400).json({
+                message: "Invalid booking ID"
+            })
+        }
+
+        const booking = await Booking.findById(id);
+
+        if(!booking){
+            return res.status(404).json({
+                message: "Booking not found"
+            })
+        }
+
+        if(booking.status !== "Pending"){
+            return res.status(409).json({
+                message: `Cannot confirm a booking with status: ${booking.status}`
+            })
+        }
+
+        const rooms = await Room.find({
+            _id: { $in: booking.rooms}
+        })
+
+        if(rooms.length !== booking.rooms.length){
+            return res.status(409).json({
+                message: "One or more rooms not booked"
+            })
+        }
+
+        const roomUnderMaintenance = rooms.some(
+            room => room.status === "Maintenance"
+        )
+
+        if(roomUnderMaintenance){
+            return res.status(409).json({
+                message: "Cannot change status to comfirm because room under maintaince"
+            })
+        }
+
+        const conflictingBooking = await Booking.findOne({
+            _id: { $ne: booking._id },
+            rooms: { $in: booking.rooms },
+            status: { $in: ["Pending", "Confirmed", "CheckedIn"] },
+            checkInDate: { $lt: booking.checkOutDate },
+            checkOutDate: { $gt: booking.checkInDate }
+        });
+
+        if (conflictingBooking) {
+            return res.status(409).json({
+                message: "One or more rooms already have a booking during these dates"
+            });
+        }
+
+        booking.status = "Confirmed";
+
+        await booking.save();
+        await booking.populate(["guest", "rooms"]);
+
+        res.status(200).json({
+            message: "Booking confirmed successfully",
+            booking
+        })
+
+    } catch (error) {
+        res.status(500).json({
+            message: error.message
+        })
+    }
+}
+
+
 export const checkInBooking = async (req, res) => {
     try {
         const { id } = req.params;
