@@ -663,3 +663,83 @@ export const checkInBooking = async (req, res) => {
         })
     }
 }
+
+
+export const checkOutBooking = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        if (!mongoose.isValidObjectId(id)){
+            return res.status(400).json({
+                message: "Invalid booking ID"
+            })
+        }
+
+        const booking = await Booking.findById(id);
+
+        if(!booking){
+            return res.status(404).json({
+                message: "Booking not found"
+            })
+        }
+
+        if(booking.status !== "CheckedIn"){
+            return res.status(409).json({
+                message: `Cannot check out a booking with status: ${booking.status}`
+            })
+        }
+
+        const today = new Date();
+        const checkOutDate = new Date(booking.checkOutDate);
+
+        today.setUTCHours(0, 0, 0, 0);
+        checkOutDate.setUTCHours(0, 0, 0, 0);
+
+        if(today < checkOutDate){
+            return res.status(400).json({
+                message: "Check-out date has not arrived yet"
+            })
+        }
+
+        const rooms = await Room.find({
+            _id: { $in: booking.rooms }
+        })
+
+        if(rooms.length !== booking.rooms.length){
+            return res.status(409).json({
+                message: "one or more booked rooms could not find"
+            })
+        }
+
+        const invalidRoomStatus = rooms.some(
+            room => room.status !== "Occupied"
+        )
+
+        if(invalidRoomStatus){
+            return res.status(409).json({
+                message: "One or more rooms are not currently occupied"
+            })
+        }
+
+        booking.status = "CheckedOut";
+
+        await Room.updateMany(
+            {_id: { $in: booking.rooms}},
+            {$set: { status: "Cleaning"}}
+        )
+
+        await booking.save();
+
+        await booking.populate(["guest", "rooms"])
+
+        res.status(200).json({
+            message: "Guest checked out successfully",
+            booking
+        })
+
+    } catch (error) {
+        res.status(500).json({
+            message: error.message
+        })
+    }
+}
