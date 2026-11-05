@@ -174,3 +174,44 @@ export const deleteRoom = async (req, res) => {
         })
     }
 }
+
+
+export const markRoomAsAvailable = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        if(!mongoose.isValidObjectId(id)){
+            return res.status(400).json({
+                message: "Invalid room ID"
+            })
+        }
+
+        const room = await Room.findById(id);
+
+        if(!room){
+            return res.status(404).json({
+                message: "Room not found"
+            })
+        }
+
+        if(room.status !== "Cleaning"){
+            return res.status(409).json({
+                message: `Cannot mark this room as available. Current status: ${room.status}`
+            })
+        }
+
+        room.status = "Available";
+
+        await room.save();
+
+        res.status(200).json({
+            message: "Room marked as available successfully",
+            room
+        })
+        
+    } catch (error) {
+        res.status(500).json({
+            message: error.message
+        })
+    }
+}
