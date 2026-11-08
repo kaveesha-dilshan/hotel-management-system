@@ -6,6 +6,7 @@ import { protect, authorize } from "./middleware/authMiddleware.js";
 import roomRoutes from "../server/routes/roomRoutes.js";
 import guestRoutes from "../server/routes/guestRoutes.js";
 import bookingRoutes from "../server/routes/bookingRoutes.js";
+import staffRoutes from "../server/routes/staffRoutes.js";
 
 const app = express();
 
@@ -41,6 +42,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/rooms", roomRoutes);
 app.use("/api/guests", guestRoutes);
 app.use("/api/bookings", bookingRoutes);
+app.use("/api/staff", staffRoutes);
 
 connectDB();
 
