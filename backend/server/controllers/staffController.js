@@ -126,13 +126,7 @@ export const updateStaff = async (req, res) => {
         const staff = await User.findOne({
             _id: id,
             role: { $ne: "owner" }
-        }).select("-password")
-
-        if(!staff){
-            return res.status(404).json({
-                message: "Staff member not found"
-            })
-        }
+        })
 
         const allowedFields = ["name", "email", "password", "role"];
         const receivedFields = Object.keys(req.body || {});
@@ -154,6 +148,12 @@ export const updateStaff = async (req, res) => {
             })
         }
 
+        if(!staff){
+            return res.status(404).json({
+                message: "Staff member not found"
+            })
+        }
+
         if(req.user.role === "manager" && req.body.role === "manager"){
             return res.status(403).json({
                 message: "Managers cannot assign manager role"
@@ -167,7 +167,7 @@ export const updateStaff = async (req, res) => {
         }
 
         if(req.body.role === "owner"){
-            return res.status(400).json({
+            return res.status(403).json({
                 message: "Cannot assing the owner role through the staff management"
             })
         }
@@ -213,7 +213,7 @@ export const updateStaff = async (req, res) => {
                 role: staff.role
             }
         })
-        
+
     } catch (error) {
         res.status(500).json({
             message: error.message
