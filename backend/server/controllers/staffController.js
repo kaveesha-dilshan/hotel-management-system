@@ -220,3 +220,54 @@ export const updateStaff = async (req, res) => {
         })
     }
 }
+
+
+// Delete staff
+export const deleteStaff = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        if(!mongoose.isValidObjectId(id)){
+            return res.status(400).json({
+                message: "Invalid staff ID"
+            })
+        }
+
+        // prevent users from deleting their own accounts
+        if(req.user._id.toString() === id){
+            return res.status(403).json({
+                message: "You cannot delete your own account"
+            })
+        }
+
+        const staff = await User.findOne({
+            _id: id,
+            role: { $ne: "owner" }
+        })
+
+        if(!staff){
+            return res.status(404).json({
+                message: "Staff member not found"
+            })
+        }
+
+        if(req.user.role === "manager" && staff.role === "manager"){
+            return res.status(403).json({
+                message: "Mangers cannot delete other manager"
+            })
+        }
+
+        await staff.deleteOne();
+
+        res.status(200).json({
+            success: true,
+            message: "Staff member deleted successfully"
+        })
+
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: error.message
+        })
+    }
+}

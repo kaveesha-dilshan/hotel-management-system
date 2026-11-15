@@ -6,8 +6,8 @@ import { createRoom, deleteRoom, getAllRooms, getRoomByID, markRoomAsAvailable, 
 const router = express.Router();
 
 router.post("/createRoom", protect, authorize("owner", "manager"), createRoom);
-router.get("/getAllRooms", getAllRooms);
-router.get("/:id", protect, getRoomByID);
+router.get("/getAllRooms", protect, authorize("owner", "manager", "receptionist", "staff"), getAllRooms);
+router.get("/:id", protect, authorize("owner", "manager", "receptionist", "staff"), getRoomByID);
 router.put("/:id", protect, authorize("owner","manager"), updaterRoom);
 router.delete("/:id", protect, authorize("owner", "manager"), deleteRoom);
 router.patch("/:id/available", protect, authorize("owner", "manager", "staff"), markRoomAsAvailable);
