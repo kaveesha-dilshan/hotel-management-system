@@ -271,3 +271,70 @@ export const deleteStaff = async (req, res) => {
         })
     }
 }
+
+
+// update staff status
+export const updateStaffStatus = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { isActive } = req.body;
+
+        if(!mongoose.Types.ObjectId.isValid(id)){
+            return res.status(400).json({
+                message: "Invalid staff ID"
+            })
+        }
+
+        if(typeof isActive !== "boolean"){
+            return res.status(400).json({
+                message: "isActive must be true or false"
+            })
+        }
+
+        const staff = await User.findById(id);
+
+        if(!staff){
+            return res.status(404).json({
+                message: "Staff member not found"
+            })
+        }
+
+        if(staff.role === "owner"){
+            return res.status(403).json({
+                message: "Owner account cannot be modified"
+            })
+        }
+
+        if(staff.role === "manager" && req.user.role === "manager"){
+            return res.status(403).json({
+                message: "Mangers cannot modify other managers"
+            })
+        }
+
+        if(req.user._id.toString() === staff._id.toString() && isActive === "false"){
+            return res.status(400).json({
+                message: "You cannot deactive your own account"
+            })
+        }
+
+        staff.isActive = isActive;
+
+        await staff.save();
+
+        res.status(200).json({
+            message: `Staff account ${isActive ? "activated" : "deactivated "} successfully.`,
+            staff: {
+                id: staff.id,
+                name: staff.name,
+                email: staff.email,
+                role: staff.role,
+                isActive: staff.isActive
+            }
+        })
+
+    } catch (error) {
+        res.status(500).json({
+            message: error.message
+        })
+    }
+}

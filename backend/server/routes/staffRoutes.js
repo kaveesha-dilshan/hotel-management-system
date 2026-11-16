@@ -2,7 +2,7 @@ import express from "express";
 import { authorize, protect } from "../middleware/authMiddleware.js";
 import { validateStaff, validateStaffUpdate } from "../middleware/staffValidation.js";
 import validateRequest from "../middleware/validateRequest.js";
-import { createStaff, deleteStaff, getAllStaff, getStaffById, updateStaff } from "../controllers/staffController.js";
+import { createStaff, deleteStaff, getAllStaff, getStaffById, updateStaff, updateStaffStatus } from "../controllers/staffController.js";
 
 const router = express.Router();
 
@@ -11,5 +11,6 @@ router.get("/all", protect, authorize("owner","manager"), getAllStaff);
 router.get("/:id", protect, authorize("owner", "manager"), getStaffById);
 router.put("/:id", protect, authorize("owner", "manager"), validateStaffUpdate, validateRequest, updateStaff);
 router.delete("/:id", protect, authorize("owner", "manager"), deleteStaff);
+router.patch("/:id/status", protect, authorize("owner", "manager"), updateStaffStatus);
 
 export default router;
